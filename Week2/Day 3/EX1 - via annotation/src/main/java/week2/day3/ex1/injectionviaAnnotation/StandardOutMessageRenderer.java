@@ -1,4 +1,4 @@
-package week2.day3.ex1.injectionviaXML;
+package week2.day3.ex1.injectionviaAnnotation;
 
 public class StandardOutMessageRenderer implements MessageRenderer {
     private MessageProvider messageProvider;
