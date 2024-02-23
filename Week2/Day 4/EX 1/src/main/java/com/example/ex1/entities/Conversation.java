@@ -2,17 +2,19 @@ package com.example.ex1.entities;
 
 import jakarta.persistence.*;
 import lombok.Data;
-
+import lombok.*;
 import java.util.ArrayList;
 import java.util.List;
 
-@Data
+
+@Getter
+@Setter
 @Entity
 public class Conversation {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long conversationID;
+    private Long conversationId;
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name="conversation_id")

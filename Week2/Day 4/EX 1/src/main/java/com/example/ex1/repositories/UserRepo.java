@@ -10,6 +10,7 @@ import java.util.Optional;
 public interface UserRepo extends JpaRepository<User,Long> {
 
     Optional<User> getUserByUserName(String userName)throws Exception;
+    Optional<User> findUserByUserName(String userName);
 
 
 }

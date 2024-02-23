@@ -17,25 +17,26 @@ public class IUserService implements UserService{
     @Autowired
     private UserRepo userRepo;
 
-    @Autowired
-    private DiscussionRepo discussionRepo;
+
 
     @Autowired
-    private ConversationRepo conversationRepo;
-
+    private IDiscussionService discussionService;
     @Override
     public User save(User user) {
         return userRepo.save(user);
     }
 
-    public User findUserbyUserName(String userName) throws Exception {
-        Optional<User> user= userRepo.getUserByUserName(userName);
+    @Override
+    public User getUserByUsername(String username) {
+        Optional<User> user = userRepo.findUserByUserName(username);
         return user.orElse(null);
     }
 
+
+
     public User createUserFirstConversation(User user,Discussion discussion){
         Conversation conv = new Conversation();
-        conv.addDiscussion(discussionRepo.save(discussion));
+        conv.addDiscussion(discussionService.save(discussion));
         user.addConversation(conv);
         return userRepo.save(user);
     }

@@ -4,21 +4,16 @@ package com.example.ex1.controllers;
 import com.example.ex1.entities.Conversation;
 import com.example.ex1.entities.Discussion;
 import com.example.ex1.entities.User;
-import com.example.ex1.openai.api.ChatGPTRequest;
-import com.example.ex1.openai.api.ChatGPTResponse;
-import com.example.ex1.service.ConversationService;
-import com.example.ex1.service.DiscussionService;
+
 import com.example.ex1.service.IUserService;
 
+import com.example.ex1.service.IChatGPTService;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.RestTemplate;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -27,28 +22,17 @@ import java.util.Objects;
 public class UserController {
 
 
-    @Value("${openai.model}")
-    private String model;
-
-    @Value(("${openai.api.url}"))
-    private String apiURL;
-
-    @Autowired
-    private RestTemplate template;
 
     @Autowired
     private IUserService userService;
 
     @Autowired
-    private ConversationService conversationService;
-
-    @Autowired
-    private DiscussionService discussionService;
+    private IChatGPTService iChatGPTService;
 
     @PostMapping("/newUser")
     @Operation(summary = "create a user",description = "create a user with the provided userName, the userName must be never used before")
     public Object createUser(@RequestParam("userName") String userName) throws Exception {
-        User user = userService.findUserbyUserName(userName);
+        User user = userService.getUserByUsername(userName);
         if (user !=null){
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Username already exist please choose another UserName");
         }
@@ -57,13 +41,13 @@ public class UserController {
 
     @GetMapping("/oneConversation")
     public Object getOneConversation(@RequestParam("Username") String userName,@RequestParam("conversationId")Long conversationId) throws Exception {
-        User user = userService.findUserbyUserName(userName);
+        User user = userService.getUserByUsername(userName);
 
         if (user == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Username or Discussion provided doesnot exist, please create a User");
         }
         for(Conversation conv  : user.getConversations()){
-            if (Objects.equals(conv.getConversationID(), conversationId)){
+            if (Objects.equals(conv.getConversationId(), conversationId)){
                 return conv;
             }
         }
@@ -72,7 +56,7 @@ public class UserController {
 
     @GetMapping("/conversations")
     public Object getUserconversations(@RequestParam("userName") String userName) throws Exception {
-        User user = userService.findUserbyUserName(userName);
+        User user = userService.getUserByUsername(userName);
         if (user ==null){
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Username provided doesnot exist, please create a User");
         }
@@ -80,15 +64,14 @@ public class UserController {
     }
     @GetMapping("/prompts")
     public Object chat(@RequestParam("prompt") String prompt, @RequestParam("userName") String userName) throws Exception {
-        User user = userService.findUserbyUserName(userName);
+        User user = userService.getUserByUsername(userName);
         if (user ==null){
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Username provided doesnot exist, please create a User");
         }
         System.out.println(prompt);
 
-        ChatGPTRequest request=new ChatGPTRequest(model, prompt);
-        ChatGPTResponse chatGptResponse = template.postForObject(apiURL, request, ChatGPTResponse.class);
-        String response = chatGptResponse.getChoices().get(0).getMessage().getContent();
+
+        String response = iChatGPTService.getResponseFromOpenAPI(prompt);
         Discussion currentDiscussion = new Discussion(prompt,response);
 
         //get the user conversations
@@ -110,13 +93,12 @@ public class UserController {
 
     @GetMapping("/newconversation")
     public Object initiatenewConversation(@RequestParam("prompt") String prompt,@RequestParam("userName")String userName) throws Exception {
-        User user = userService.findUserbyUserName(userName);
+        User user = userService.getUserByUsername(userName);
         if (user ==null){
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Username provided doesnot exist, please create a User");
         }
-        ChatGPTRequest request=new ChatGPTRequest(model, prompt);
-        ChatGPTResponse chatGptResponse = template.postForObject(apiURL, request, ChatGPTResponse.class);
-        String response = chatGptResponse.getChoices().get(0).getMessage().getContent();
+
+        String response = iChatGPTService.getResponseFromOpenAPI(prompt);
         Discussion currentDiscussion = new Discussion(prompt,response);
         userService.createUserFirstConversation(user,currentDiscussion);
         return response;
