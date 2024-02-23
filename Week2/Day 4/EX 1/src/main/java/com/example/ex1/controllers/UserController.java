@@ -9,6 +9,8 @@ import com.example.ex1.openai.api.ChatGPTResponse;
 import com.example.ex1.service.ConversationService;
 import com.example.ex1.service.DiscussionService;
 import com.example.ex1.service.IUserService;
+
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -44,6 +46,7 @@ public class UserController {
     private DiscussionService discussionService;
 
     @PostMapping("/newUser")
+    @Operation(summary = "create a user",description = "create a user with the provided userName, the userName must be never used before")
     public Object createUser(@RequestParam("userName") String userName) throws Exception {
         User user = userService.findUserbyUserName(userName);
         if (user !=null){
@@ -76,7 +79,7 @@ public class UserController {
         return user.getConversations();
     }
     @GetMapping("/prompts")
-    public Object chat(@RequestParam("prompt") String prompt,@RequestParam("userName") String userName) throws Exception {
+    public Object chat(@RequestParam("prompt") String prompt, @RequestParam("userName") String userName) throws Exception {
         User user = userService.findUserbyUserName(userName);
         if (user ==null){
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Username provided doesnot exist, please create a User");
@@ -106,7 +109,7 @@ public class UserController {
     }
 
     @GetMapping("/newconversation")
-    public Object chat(@RequestParam("prompt") String prompt,@RequestParam("userName")String userName,@RequestParam("newConversation")String newconvers) throws Exception {
+    public Object initiatenewConversation(@RequestParam("prompt") String prompt,@RequestParam("userName")String userName) throws Exception {
         User user = userService.findUserbyUserName(userName);
         if (user ==null){
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Username provided doesnot exist, please create a User");

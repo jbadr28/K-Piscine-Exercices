@@ -37,20 +37,8 @@ public class User {
         return conversations;
     }
 
-    public void setConversations(ArrayList<Conversation> conversations){
-        this.conversations=conversations;
-    }
-
     public void addConversation(Conversation conv){
         this.conversations.add(conv);
     }
 
-
-    public Long getUserId() {
-        return userId;
-    }
-
-    public String getUserName() {
-        return userName;
-    }
 }

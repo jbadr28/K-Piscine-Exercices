@@ -1,6 +1,7 @@
 package com.example.ex1.entities;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -11,7 +12,7 @@ public class Discussion {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long conversastionId;
+    private Long discussionId;
 
     @Column(length = 2000)
     private String question;

@@ -33,7 +33,5 @@ public class Conversation {
         this.discussions.add(discussion);
     }
 
-    public Long getConversationID() {
-        return this.conversationID;
-    }
+
 }
