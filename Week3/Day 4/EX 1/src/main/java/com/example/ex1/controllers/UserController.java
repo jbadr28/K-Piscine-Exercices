@@ -29,47 +29,34 @@ public class UserController {
     @Autowired
     private IChatGPTService iChatGPTService;
 
-    @PostMapping("/newUser")
-    @Operation(summary = "create a user",description = "create a user with the provided userName, the userName must be never used before")
-    public Object createUser(@RequestParam("userName") String userName) throws Exception {
-        User user = userService.getUserByUsername(userName);
-        if (user !=null){
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Username already exist please choose another UserName");
-        }
-        return userService.save(new User(userName));
-    }
 
+
+    @PostMapping("/newUser")
+    @Operation(summary = "create a user", description = "create a user with the provided userName, the userName must be never used before")
+    public User createUser(@RequestParam("userName") String userName) {
+        return userService.createUser(userName);
+    }
     @GetMapping("/oneConversation")
     @Operation(summary = "get one conversation",description = "the user retreive one of his/her conversations")
-    public Object getOneConversation(@RequestParam("Username") String userName,@RequestParam("conversationId")Long conversationId) throws Exception {
-        User user = userService.getUserByUsername(userName);
-
-        if (user == null) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Username or Discussion provided doesnot exist, please create a User");
-        }
-        for(Conversation conv  : user.getConversations()){
-            if (Objects.equals(conv.getConversationId(), conversationId)){
-                return conv;
-            }
-        }
-        return "the Conversation Asked for does not belong to the user";
+    public Conversation getOneConversation(@RequestParam("Username") String userName,@RequestParam("conversationId")Long conversationId) throws Exception {
+        return userService.getOneConversation(userName,conversationId);
     }
 
     @GetMapping("/conversations")
     @Operation(summary = "get one conversation",description = "the user retreive one of his/her conversations")
-    public Object getUserconversations(@RequestParam("userName") String userName) throws Exception {
+    public List<Conversation> getUserconversations(@RequestParam("userName") String userName) throws Exception {
         User user = userService.getUserByUsername(userName);
         if (user ==null){
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Username provided doesnot exist, please create a User");
+            throw new RuntimeException("Username provided doesnot exist, please create a User");
         }
         return user.getConversations();
         //Mapper user.getClass().getFields()[0].getName()
     }
     @GetMapping("/prompts")
-    public Object chat(@RequestParam("prompt") String prompt, @RequestParam("userName") String userName) throws Exception {
+    public String chat(@RequestParam("prompt") String prompt, @RequestParam("userName") String userName) throws Exception {
         User user = userService.getUserByUsername(userName);
         if (user ==null){
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Username provided doesnot exist, please create a User");
+            throw new RuntimeException("Username provided doesnot exist, please create a User");
         }
         System.out.println(prompt);
 
@@ -81,7 +68,7 @@ public class UserController {
         List<Conversation> userConversations = user.getConversations();
         //check if the the had any conversation
         if(userConversations == null || userConversations.isEmpty()){
-            userService.createUserFirstConversation(user,currentDiscussion);
+            userService.createUserFirstConversation(userName,currentDiscussion);
         }else{
             userConversations.getLast().addDiscussion(currentDiscussion);
 
@@ -95,15 +82,11 @@ public class UserController {
     }
 
     @GetMapping("/newconversation")
-    public Object initiatenewConversation(@RequestParam("prompt") String prompt,@RequestParam("userName")String userName) throws Exception {
-        User user = userService.getUserByUsername(userName);
-        if (user ==null){
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Username provided doesnot exist, please create a User");
-        }
+    public String initiateNewConversation(@RequestParam("prompt") String prompt,@RequestParam("userName")String userName) throws Exception {
 
         String response = iChatGPTService.getResponseFromOpenAPI(prompt);
         Discussion currentDiscussion = new Discussion(prompt,response);
-        userService.createUserFirstConversation(user,currentDiscussion);
+        userService.createUserFirstConversation(userName,currentDiscussion);
         return response;
     }
 
